@@ -24,64 +24,105 @@ def standardize_columns(df):
     return df
 
 
-def transform_pacientes():
-    df = load_table("pacientes")
-    df = standardize_columns(df)
-
+def limpa_cpf(df):
     df["cpf"] = df["cpf"].str.strip()
     df["cpf"] = df["cpf"].str.replace(".", "")
     df["cpf"] = df["cpf"].str.replace("-", "")
 
+    return df
+
+
+def transform_pacientes():
+    df = load_table("pacientes")
+    df = standardize_columns(df)
+
+    df["nome"] = df["nome"].str.strip()
+
+    df = limpa_cpf(df)
+
+    df = df.drop_duplicates(subset=["cpf"])
+
     df["data_nascimento"] = df["data_de_nascimento"]
     df.drop(columns=["data_de_nascimento"], inplace=True)
-    df["data_nascimento"] = pd.to_datetime(df["data_nascimento"])
 
-    # df['idade'] = (pd.to_datetime('today') - pd.to_datetime(df['data_nascimento']))
+    df["data_nascimento"] = pd.to_datetime(
+        df["data_nascimento"], errors="coerce", format="mixed", dayfirst=True
+    )
+    df["idade"] = (pd.Timestamp.now() - df["data_nascimento"]).dt.days // 365
+    df["idade"] = df["idade"].astype("Int64")
 
-    print(df)
+    df["sexo"] = df["sexo"].str.strip()
+    df["sexo"] = df["sexo"]
 
     return df
 
 
-def transform_pedidos():
-    df = load_table("pedidos")
+def transform_medicos():
+    df = load_table("medicos")
     df = standardize_columns(df)
-    # Converte coluna de data (assumindo nome após padronização: 'datapedido' ou 'data_pedido')
-    if "datapedido" in df.columns:
-        df["datapedido"] = pd.to_datetime(df["datapedido"])
-    elif "data_pedido" in df.columns:
-        df["data_pedido"] = pd.to_datetime(df["data_pedido"])
+
+    df = limpa_cpf(df)
+
+    df["nome"] = df["nome"].str.strip()
+    df["nome"] = df["nome"].str.replace("Dr. ", "")
+    df["nome"] = df["nome"].str.replace("Dra. ", "")
+
+    df["data_nascimento"] = pd.to_datetime(df["data_de_nascimento"], errors="coerce")
+    df.drop(columns=["data_de_nascimento"], inplace=True)
+
     return df
 
 
-def transform_detalhes():
-    df = load_table("detalhes_pedidos")
+def transform_consultas():
+    df = load_table("consultas")
     df = standardize_columns(df)
-    # Calcula venda líquida usando os nomes padronizados
-    df["venda_liquida"] = df["quantidade"] * df["precounitario"] * (1 - df["desconto"])
+
+    df["chegada"] = pd.to_datetime(
+        df["chegada"], errors="coerce", format="mixed", dayfirst=True
+    )
+    df["atendimento"] = pd.to_datetime(
+        df["atendimento"], errors="coerce", format="mixed", dayfirst=True
+    )
+    df["saida"] = pd.to_datetime(
+        df["saida"], errors="coerce", format="mixed", dayfirst=True
+    )
+
+    df.loc[df["atendimento"].isna(), "diagnostico"] = None
+
     return df
 
 
-def transform_produtos():
-    df = load_table("produtos")
+def transform_exames():
+    df = load_table("exames")
     df = standardize_columns(df)
-    # Garante que a coluna de custo unitário exista com nome padronizado
-    # (se original era 'custounitario' ou 'custo_unitario')
-    return df
 
+    df["chegada"] = pd.to_datetime(
+        df["chegada"], errors="coerce", format="mixed", dayfirst=True
+    )
+    df["atendimento"] = pd.to_datetime(
+        df["atendimento"], errors="coerce", format="mixed", dayfirst=True
+    )
+    df["saida"] = pd.to_datetime(
+        df["saida"], errors="coerce", format="mixed", dayfirst=True
+    )
 
-def transform_fornecedores():
-    df = load_table("fornecedores")
-    df = standardize_columns(df)
+    df.loc[df["atendimento"].isna(), "diagnostico_do_exame"] = None
+
+    df["nome_exame"] = df["nome_do_exame"]
+    df.drop(columns=["nome_do_exame"], inplace=True)
+
+    df["diagnostico_exame"] = df["diagnostico_do_exame"]
+    df.drop(columns=["diagnostico_do_exame"], inplace=True)
+
     return df
 
 
 def run():
     save_table(transform_pacientes(), "pacientes")
-    # save_table(transform_pedidos(), "pedidos")
-    # save_table(transform_detalhes(), "detalhes_pedidos")
-    # save_table(transform_produtos(), "produtos")
-    # save_table(transform_fornecedores(), "fornecedores")
+    save_table(transform_medicos(), "medicos")
+    save_table(transform_consultas(), "consultas")
+    save_table(transform_exames(), "exames")
+
     print("[PRATA] Transformações concluídas")
 
 
