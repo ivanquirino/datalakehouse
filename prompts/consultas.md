@@ -9,12 +9,13 @@ Gere registros de 10000 consultas.
 ID: numérico, incremental, ordenado
 Chegada: data e hora em formato ISO padrão
 Atendimento: data e hora em formato ISO padrão
-Saída: data e hora em formato ISO padrão
+Saida: data e hora em formato ISO padrão
 Paciente ID: chave estrangeira de Pacientes (entre 1 e 1000)
-Médico ID: chave estrangeria de Medicos (entre 1 e 20)
-Diagnóstico: Texto
+Medico ID: chave estrangeria de Medicos (entre 1 e 20)
+Diagnostico: Texto
 
 ## Regras
 
+Datas: Chegada < Atendimento < Saída
 5% dos registros são de pacientes de desistiram do atendimento e portanto não tem data/hora de atendimento e nem de saída.
 Outros 5% dos registros possem data em formato brasileiro: 29/05/2026

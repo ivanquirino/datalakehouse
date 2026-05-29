@@ -79,13 +79,15 @@ def transform_consultas():
 
     df["chegada"] = pd.to_datetime(
         df["chegada"], errors="coerce", format="mixed", dayfirst=True
-    )
+    ).astype("datetime64[ms]")
+
     df["atendimento"] = pd.to_datetime(
         df["atendimento"], errors="coerce", format="mixed", dayfirst=True
-    )
+    ).astype("datetime64[ms]")
+
     df["saida"] = pd.to_datetime(
         df["saida"], errors="coerce", format="mixed", dayfirst=True
-    )
+    ).astype("datetime64[ms]")
 
     df.loc[df["atendimento"].isna(), "diagnostico"] = None
 
@@ -98,20 +100,22 @@ def transform_exames():
 
     df["chegada"] = pd.to_datetime(
         df["chegada"], errors="coerce", format="mixed", dayfirst=True
-    )
+    ).astype("datetime64[ms]")
+
     df["atendimento"] = pd.to_datetime(
         df["atendimento"], errors="coerce", format="mixed", dayfirst=True
-    )
+    ).astype("datetime64[ms]")
+
     df["saida"] = pd.to_datetime(
         df["saida"], errors="coerce", format="mixed", dayfirst=True
-    )
+    ).astype("datetime64[ms]")
 
     df.loc[df["atendimento"].isna(), "diagnostico_do_exame"] = None
 
     df["nome_exame"] = df["nome_do_exame"]
     df.drop(columns=["nome_do_exame"], inplace=True)
 
-    df["diagnostico_exame"] = df["diagnostico_do_exame"]
+    df["diagnostico"] = df["diagnostico_do_exame"]
     df.drop(columns=["diagnostico_do_exame"], inplace=True)
 
     return df
